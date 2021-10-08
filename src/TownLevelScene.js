@@ -35,6 +35,7 @@ export default class TownLevelScene extends Phaser.Scene {
     // Parameters: layer name (or index) from Tiled, tileset, x, y
     map.createLayer("background", tileset, 0, 0);
     const worldLayer = map.createLayer("building", tileset, 0, 0);
+    map.createLayer("building_decorations", tileset, 0, 0);
     const aboveLayer = map.createLayer("overhead", tileset, 0, 0);
     const aboveLayer_2 = map.createLayer("overhead_top", tileset, 0, 0);
 

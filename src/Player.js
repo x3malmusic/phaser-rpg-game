@@ -17,11 +17,11 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
     this.scene.add.existing(this)
 
     const { Body, Bodies } = Phaser.Physics.Matter.Matter
-    const playerCollider = Bodies.rectangle(x, y, 24, 46, { isSensor: false, label: "playerCollider" })
+    const playerCollider = Bodies.rectangle(x, y, 24, 16, { isSensor: false, label: "playerCollider" })
     const compoundBody = Body.create({ parts: [playerCollider], frictionAir: 0.35 })
 
     this.setExistingBody(compoundBody)
-    this.setOrigin(0.5, 0.63)
+    this.setOrigin(0.5, 0.83)
     this.setFixedRotation()
 
     this.scene.events.on('update', this.update, this)
