@@ -1,11 +1,22 @@
 import Phaser from "phaser";
 
-export default class Enemy extends Phaser.GameObjects.Sprite {
+export default class Enemy extends Phaser.Physics.Matter.Sprite {
   constructor(scene, x, y, image) {
-    super(scene, x, y, image, 0);
+    super(scene.matter.world, x, y, image, 0);
 
-    this.scene.physics.world.enable(this, 0);
+    // this.scene.physics.world.enable(this, 0);
     this.scene.add.existing(this)
+
+    const { Body, Bodies } = Phaser.Physics.Matter.Matter
+    const playerCollider = Bodies.rectangle(x, y, 24, 46, { isSensor: false, label: "playerCollider" })
+    const compoundBody = Body.create({ parts: [playerCollider], frictionAir: 0.35 })
+
+    this.setExistingBody(compoundBody)
+    this.setOrigin(0.5, 0.63)
+    this.setFixedRotation()
+    this.body.immovable = true
+    this.body.moves = false
+
     this.scene.events.on('update', this.update, this)
   }
 
@@ -20,9 +31,6 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
     const anims = this.anims
 
     this.setDepth(5)
-    this.body.setSize(24, 64)
-
-    this.body.setImmovable(true)
 
     anims.create({
       key: 'left',

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import Phaser from "phaser"
+import PhaserMatterCollisionPlugin from "phaser-matter-collision-plugin";
 import TownLevelScene from "./TownLevelScene";
 import BattleScene from "./BattleScene";
 import GameDialog from "./plugins/GameDialog";
@@ -20,15 +21,16 @@ const App = () => {
       height,
       autoFocus: false,
       physics: {
-        default: "arcade",
-        arcade: {
+        default: "matter",
+        matter: {
           debug: true,
           gravity: { y: 0 }
         }
       },
       plugins: {
         scene: [
-          { key: 'gameDialog', plugin: GameDialog, mapping: 'gameDialog' }
+          { key: 'matterCollision', plugin: PhaserMatterCollisionPlugin, mapping: 'matterCollision' },
+          { key: 'gameDialog', plugin: GameDialog, mapping: 'gameDialog' },
         ]
       },
       scale: {

@@ -17,47 +17,59 @@ export default class TownLevelScene extends Phaser.Scene {
 
   create() {
     const map = this.make.tilemap({ key: "map" });
+    this.dialogs = this.cache.json.get('dialogs');
 
-    const spawnPoint = map.findObject("Objects", obj => obj.name === "Spawn Point");
+    const spawnPoint = map.findObject("characters", obj => obj.name === "player");
+    const spawnPoint_2 = map.findObject("characters", obj => obj.name === "zombie");
 
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, "dude", 4)
     this.player.createAnims();
 
-    this.enemy = new Enemy(this, spawnPoint.x + 100, spawnPoint.y - 100, "zombie", 0)
+    this.enemy = new Enemy(this, spawnPoint_2.x, spawnPoint_2.y, "zombie", 0)
     this.enemy.createAnims();
-
-
 
     // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
     // Phaser's cache (i.e. the name you used in preload)
-    const tileset = map.addTilesetImage("tuxmon-sample-32px-extruded", "town");
+    const tileset = map.addTilesetImage("tileset", "town", 32, 32, 0, 0);
 
     // Parameters: layer name (or index) from Tiled, tileset, x, y
-    map.createLayer("Below Player", tileset, 0, 0);
-    const worldLayer = map.createLayer("World", tileset, 0, 0);
-    const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
+    map.createLayer("background", tileset, 0, 0);
+    const worldLayer = map.createLayer("building", tileset, 0, 0);
+    const aboveLayer = map.createLayer("overhead", tileset, 0, 0);
+    const aboveLayer_2 = map.createLayer("overhead_top", tileset, 0, 0);
+
     worldLayer.setCollisionByProperty({ collides: true });
+    this.matter.world.convertTilemapLayer(worldLayer)
 
     aboveLayer.setDepth(10);
+    aboveLayer_2.setDepth(15);
 
     const camera = this.cameras.main;
     camera.startFollow(this.player);
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    // Watch the player and worldLayer for collisions, for the duration of the scene:
-    this.physics.add.collider(this.player, worldLayer);
-    this.physics.add.collider(this.player, this.enemy, () => {
-      // this.player.setActive(false);
-      // this.player.setVisible(false);
-      // this.player.body.enable = false;
+    // Extract objects from the object layer
+    const objectLayer = map.getObjectLayer('interactive');
+    // Convert object layer objects to Phaser game objects
+    if (objectLayer && objectLayer.objects) {
+      objectLayer.objects.forEach(
+        (object) => {
+          const objectX = object.x + (object.width / 2)
+          const objectY = object.y + (object.height / 2)
 
-      // const x = this.player.x
-      // const y = this.player.y - 100
+          let tmp = this.matter.add.rectangle(objectX, objectY, object.width, object.height, { label: object.name, isStatic: true });
+          tmp.properties = object.properties.reduce((obj, item) => Object.assign(obj, { [item.name]: item.value }), {});
 
-      // this.player = null
-      // this.add.text(x, y, "You are dead!", { font: "40px san-serif", fill: "#ff0000" })
-      this.gameDialog.setText("This zombie looks dangerous");
-      // this.scene.start("battle")
-    });
+          this.matterCollision.addOnCollideStart({
+            objectA: this.player,
+            objectB: tmp,
+            callback: eventData => {
+              const { bodyB } = eventData;
+              this.gameDialog.setText(this.dialogs[bodyB.label]);
+            }
+          });
+        }
+      );
+    }
   }
 }

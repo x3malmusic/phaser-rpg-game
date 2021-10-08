@@ -1,8 +1,11 @@
 import Phaser from "phaser";
 
-export default class Player extends Phaser.GameObjects.Sprite {
+export default class Player extends Phaser.Physics.Matter.Sprite {
   constructor(scene, x, y, image) {
-    super(scene, x, y, image, 4);
+    super(scene.matter.world, x, y, image, 4);
+
+    this.speed = 3
+    this.direction = "down"
 
     this.inputKeys = scene.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -11,8 +14,16 @@ export default class Player extends Phaser.GameObjects.Sprite {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     })
 
-    this.scene.physics.world.enable(this, 0);
     this.scene.add.existing(this)
+
+    const { Body, Bodies } = Phaser.Physics.Matter.Matter
+    const playerCollider = Bodies.rectangle(x, y, 24, 46, { isSensor: false, label: "playerCollider" })
+    const compoundBody = Body.create({ parts: [playerCollider], frictionAir: 0.35 })
+
+    this.setExistingBody(compoundBody)
+    this.setOrigin(0.5, 0.63)
+    this.setFixedRotation()
+
     this.scene.events.on('update', this.update, this)
   }
 
@@ -26,8 +37,6 @@ export default class Player extends Phaser.GameObjects.Sprite {
   createAnims() {
     const anims = this.anims
     this.setDepth(5)
-
-    this.body.setSize(24, 64)
 
     anims.create({
       key: 'left',
@@ -53,24 +62,52 @@ export default class Player extends Phaser.GameObjects.Sprite {
       frameRate: 10,
       repeat: -1,
     })
+
+    anims.create({
+      key: 'idle-left',
+      frames: [{ key: "dude", frame: 4 }],
+      frameRate: 1,
+      repeat: -1,
+    })
+    anims.create({
+      key: 'idle-down',
+      frames: [{ key: "dude", frame: 0 }],
+      frameRate: 1,
+      repeat: -1,
+    })
+    anims.create({
+      key: 'idle-right',
+      frames: [{ key: "dude", frame: 8 }],
+      frameRate: 1,
+      repeat: -1,
+    })
+    anims.create({
+      key: 'idle-up',
+      frames: [{ key: "dude", frame: 12 }],
+      frameRate: 1,
+      repeat: -1,
+    })
   }
 
   update(args) {
-    const speed = 175
-
+    if (this.scene.gameDialog.visible) return
     if (!this.body) return
 
-    this.body.setVelocityX(0)
-    this.body.setVelocityY(0)
+    this.setVelocityX(0)
+    this.setVelocityY(0)
 
     if (this.inputKeys.left.isDown) {
-      this.body.setVelocityX(-speed)
+      this.setVelocityX(-this.speed)
+      this.direction = "left";
     } else if (this.inputKeys.right.isDown) {
-      this.body.setVelocityX(speed)
+      this.setVelocityX(this.speed)
+      this.direction = "right";
     } else if (this.inputKeys.up.isDown) {
-      this.body.setVelocityY(-speed)
+      this.setVelocityY(-this.speed)
+      this.direction = "up";
     } else if (this.inputKeys.down.isDown) {
-      this.body.setVelocityY(speed)
+      this.setVelocityY(this.speed)
+      this.direction = "down";
     }
 
 
@@ -82,8 +119,8 @@ export default class Player extends Phaser.GameObjects.Sprite {
       this.play("up", true);
     } else if (this.inputKeys.down.isDown) {
       this.play("down", true);
-    } else {
-      this.play("down", true)
+    } else if(this.body.velocity.x === 0 && this.body.velocity.y === 0) {
+      this.play(`idle-${this.direction}`, false)
     }
   }
 }

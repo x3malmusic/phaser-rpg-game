@@ -7,7 +7,8 @@ export default class Town extends Phaser.Physics.Matter.Image {
   }
 
   static preload(scene) {
-    scene.load.tilemapTiledJSON("map", "assets/tuxemon_town.json");
-    scene.load.image("town", "assets/tilesets/tuxmon-sample-32px-extruded.png");
+    scene.load.json("dialogs", "assets/interactibles/world.json");
+    scene.load.tilemapTiledJSON("map", "assets/map.json");
+    scene.load.image("town", "assets/tilesets/tileset.png");
   }
 }
